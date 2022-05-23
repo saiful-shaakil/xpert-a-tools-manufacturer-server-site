@@ -26,6 +26,13 @@ async function run() {
     const orderCollection = client
       .db("tools_manufacturer")
       .collection("orders");
+
+    //to get feature products
+    app.get("/feature", async (req, res) => {
+      const query = { type: "featured" };
+      const result = await productCollection.find(query).toArray();
+      res.send(result);
+    });
   } finally {
     //client.close()
   }
