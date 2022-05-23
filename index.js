@@ -54,6 +54,12 @@ async function run() {
       const result = await productCollection.findOne(query);
       res.send(result);
     });
+    // to post an order
+    app.post("/place-order", async (req, res) => {
+      const placeDetails = req.body;
+      const result = await orderCollection.insertOne(placeDetails);
+      res.send(result);
+    });
   } finally {
     //client.close()
   }
