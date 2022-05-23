@@ -40,6 +40,20 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    //to get new arrivals products
+    app.get("/new-arrivals", async (req, res) => {
+      const result = await productCollection
+        .find({ type: "newArrivals" })
+        .toArray();
+      res.send(result);
+    });
+    //to get product by id
+    app.get("/purchase/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productCollection.findOne(query);
+      res.send(result);
+    });
   } finally {
     //client.close()
   }
