@@ -60,6 +60,13 @@ async function run() {
       const result = await orderCollection.insertOne(placeDetails);
       res.send(result);
     });
+    //to get the order collection of a user
+    app.get("/my-orders/:email", async (req, res) => {
+      const userEmail = req.params.email;
+      const query = { email: userEmail };
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
   } finally {
     //client.close()
   }
