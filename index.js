@@ -67,6 +67,13 @@ async function run() {
       const result = await orderCollection.find(query).toArray();
       res.send(result);
     });
+    //to delete an order
+    app.delete("/delete-order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
     //client.close()
   }
