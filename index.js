@@ -33,6 +33,13 @@ async function run() {
       const result = await productCollection.find(query).toArray();
       res.send(result);
     });
+    //to get top rated products
+    app.get("/top-rated", async (req, res) => {
+      const result = await productCollection
+        .find({ type: "topRated" })
+        .toArray();
+      res.send(result);
+    });
   } finally {
     //client.close()
   }
