@@ -8,8 +8,23 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-//connecting database
+//to verify a user using jwt
+function verifyUser(req, res, next) {
+  const authCode = req.headers.authorization;
+  if (!authCode) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+  const token = authCode.split(" ")[1];
+  jwt.verify(token, process.env.JWT_ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Access Denied" });
+    }
+    req.decoded = decoded;
+  });
+  next();
+}
 
+//connecting database
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASS}@redonion.uipb9.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -31,6 +46,30 @@ async function run() {
       .collection("reviews");
     const userCollection = client.db("tools_manufacturer").collection("users");
 
+    //to post a user
+    app.put("/add-user/:email", async (req, res) => {
+      const emailofUser = req.params.email;
+      const userDetails = req.body;
+      const filter = { mail: emailofUser };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: userDetails,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign(
+        { email: emailofUser },
+        process.env.JWT_ACCESS_TOKEN,
+        {
+          expiresIn: "1d",
+        }
+      );
+      res.send({ result, token });
+    });
+    //to get all users for admin
+    app.get("/all-users", async (req, res) => {
+      const result = await userCollection.find({}).toArray();
+      res.send(result);
+    });
     //to get feature products
     app.get("/feature", async (req, res) => {
       const query = { type: "featured" };
@@ -76,11 +115,16 @@ async function run() {
       res.send(result);
     });
     //to get the order collection of a user
-    app.get("/my-orders/:email", async (req, res) => {
+    app.get("/my-orders/:email", verifyUser, async (req, res) => {
+      const verifiedEmail = req.decoded.email;
       const userEmail = req.params.email;
-      const query = { email: userEmail };
-      const result = await orderCollection.find(query).toArray();
-      res.send(result);
+      if (verifiedEmail === userEmail) {
+        const query = { email: userEmail };
+        const result = await orderCollection.find(query).toArray();
+        res.send(result);
+      } else {
+        return res.status(401).send({ message: "Access Denied" });
+      }
     });
     //to delete an order
     app.delete("/delete-order/:id", async (req, res) => {
@@ -103,17 +147,6 @@ async function run() {
     // to get reviews
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
-      res.send(result);
-    });
-    //to post a user
-    app.post("/add-user", async (req, res) => {
-      const userDetails = req.body;
-      const result = await userCollection.insertOne(userDetails);
-      res.send(result);
-    });
-    //to get all users for admin
-    app.get("/all-users", async (req, res) => {
-      const result = await userCollection.find({}).toArray();
       res.send(result);
     });
   } finally {
