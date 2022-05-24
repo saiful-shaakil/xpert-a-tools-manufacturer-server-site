@@ -29,6 +29,7 @@ async function run() {
     const reviewsCollection = client
       .db("tools_manufacturer")
       .collection("reviews");
+    const userCollection = client.db("tools_manufacturer").collection("users");
 
     //to get feature products
     app.get("/feature", async (req, res) => {
@@ -61,6 +62,11 @@ async function run() {
     app.post("/new-product", async (req, res) => {
       const newProduct = req.body;
       const result = await productCollection.insertOne(newProduct);
+      res.send(result);
+    });
+    //to get all the products for admin
+    app.get("/all-products", async (req, res) => {
+      const result = await productCollection.find({}).toArray();
       res.send(result);
     });
     // to post an order
@@ -97,6 +103,17 @@ async function run() {
     // to get reviews
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
+      res.send(result);
+    });
+    //to post a user
+    app.post("/add-user", async (req, res) => {
+      const userDetails = req.body;
+      const result = await userCollection.insertOne(userDetails);
+      res.send(result);
+    });
+    //to get all users for admin
+    app.get("/all-users", async (req, res) => {
+      const result = await userCollection.find({}).toArray();
       res.send(result);
     });
   } finally {
