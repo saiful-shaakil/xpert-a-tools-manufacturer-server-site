@@ -108,6 +108,19 @@ async function run() {
       const result = await productCollection.find({}).toArray();
       res.send(result);
     });
+    //to update the product after shipped (for admin)
+    app.put("/shipped-order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          shippingStatus: "Shipped",
+        },
+      };
+      const result = await orderCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
     //to delete a product for admin
     app.delete("/delete-product/:id", async (req, res) => {
       const id = req.params.id;
