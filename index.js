@@ -26,6 +26,9 @@ async function run() {
     const orderCollection = client
       .db("tools_manufacturer")
       .collection("orders");
+    const reviewsCollection = client
+      .db("tools_manufacturer")
+      .collection("reviews");
 
     //to get feature products
     app.get("/feature", async (req, res) => {
@@ -72,6 +75,17 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+    // to add reviews
+    app.post("/add-review", async (req, res) => {
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
+      res.send(result);
+    });
+    // to get reviews
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewsCollection.find({}).toArray();
       res.send(result);
     });
   } finally {
