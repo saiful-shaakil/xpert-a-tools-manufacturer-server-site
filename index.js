@@ -108,6 +108,13 @@ async function run() {
       const result = await productCollection.find({}).toArray();
       res.send(result);
     });
+    //to delete a product for admin
+    app.delete("/delete-product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
+      res.send(result);
+    });
     // to post an order
     app.post("/place-order", async (req, res) => {
       const placeDetails = req.body;
