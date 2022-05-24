@@ -57,6 +57,12 @@ async function run() {
       const result = await productCollection.findOne(query);
       res.send(result);
     });
+    //to post a new product
+    app.post("/new-product", async (req, res) => {
+      const newProduct = req.body;
+      const result = await productCollection.insertOne(newProduct);
+      res.send(result);
+    });
     // to post an order
     app.post("/place-order", async (req, res) => {
       const placeDetails = req.body;
@@ -75,6 +81,11 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+    //to get all order for admin
+    app.get("/all-orders", async (req, res) => {
+      const result = await orderCollection.find({}).toArray();
       res.send(result);
     });
     // to add reviews
