@@ -50,10 +50,9 @@ async function run() {
     //for payment method
     app.post("/create-payment-intent", async (req, res) => {
       const order = req.body;
-      const price = order.price;
-      const amount = price * 1000;
+      const amount = order.totalPrice;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: calculateOrderAmount(items),
+        amount: amount,
         currency: "usd",
         automatic_payment_methods: ["card"],
       });
@@ -97,6 +96,25 @@ async function run() {
         },
       };
       const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+    //to update user information
+    app.put("/update-user-info/:email", async (req, res) => {
+      const email = req.params.email;
+      const info = req.body;
+      const query = { mail: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: info,
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+    //to get information of a single user
+    app.get("/my-info/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { mail: email };
+      const result = await userCollection.findOne(query);
       res.send(result);
     });
     //to get feature products
