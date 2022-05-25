@@ -70,6 +70,20 @@ async function run() {
       const result = await userCollection.find({}).toArray();
       res.send(result);
     });
+    //to update role of a user
+    app.put("/update-user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          admin: true,
+          role: "Admin",
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
     //to get feature products
     app.get("/feature", async (req, res) => {
       const query = { type: "featured" };
