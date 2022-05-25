@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 //middleware
@@ -46,6 +47,20 @@ async function run() {
       .collection("reviews");
     const userCollection = client.db("tools_manufacturer").collection("users");
 
+    //for payment method
+    app.post("/create-payment-intent", async (req, res) => {
+      const order = req.body;
+      const price = order.price;
+      const amount = price * 1000;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: calculateOrderAmount(items),
+        currency: "usd",
+        automatic_payment_methods: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
     //to post a user
     app.put("/add-user/:email", async (req, res) => {
       const emailofUser = req.params.email;
@@ -122,6 +137,13 @@ async function run() {
       const result = await productCollection.find({}).toArray();
       res.send(result);
     });
+    //to get a single order
+    app.get("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.findOne(query);
+      res.send(result);
+    });
     //to update the product after shipped (for admin)
     app.put("/shipped-order/:id", async (req, res) => {
       const id = req.params.id;
@@ -182,6 +204,14 @@ async function run() {
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
       res.send(result);
+    });
+    //to make sure the admin
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { mail: email };
+      const user = await userCollection.findOne(filter);
+      const isAdmin = user.admin === true;
+      res.send({ admin: isAdmin });
     });
   } finally {
     //client.close()
