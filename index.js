@@ -2,7 +2,10 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Stripe = require("stripe");
+const stripe = Stripe(
+  "sk_test_51L3GjVAjo3Oz9HwzW5UJ7bk7I5YLzM2WI7YgouCJRqEce2wzfGfFnglQAafOdS6w3RDy8WYmKb43j5X35eKmSuzb00NjtK5adh"
+);
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 //middleware
@@ -50,15 +53,14 @@ async function run() {
     //for payment method
     app.post("/create-payment-intent", async (req, res) => {
       const order = req.body;
-      const amount = order.totalPrice;
+      const price = order.totalPrice;
+      const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: "usd",
-        automatic_payment_methods: ["card"],
+        payment_method_types: ["card"],
       });
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
+      res.send({ clientSecret: paymentIntent.client_secret });
     });
     //to post a user
     app.put("/add-user/:email", async (req, res) => {
@@ -173,6 +175,21 @@ async function run() {
         },
       };
       const result = await orderCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+    //to update the order payment status after successful payment
+    app.patch("/update-order/:id", async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          paid: true,
+          status: "Paid",
+          transactionId: payment.transId,
+        },
+      };
+      const result = await orderCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
     //to delete a product for admin
