@@ -2,16 +2,14 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const Stripe = require("stripe");
-const stripe = Stripe(
-  "sk_test_51L3GjVAjo3Oz9HwzW5UJ7bk7I5YLzM2WI7YgouCJRqEce2wzfGfFnglQAafOdS6w3RDy8WYmKb43j5X35eKmSuzb00NjtK5adh"
-);
+
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 //middleware
 app.use(cors());
 app.use(express.json());
-
+//stipe setup
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 //to verify a user using jwt
 function verifyUser(req, res, next) {
   const authCode = req.headers.authorization;
