@@ -48,7 +48,7 @@ async function run() {
       .collection("reviews");
     const userCollection = client.db("tools_manufacturer").collection("users");
 
-    //for payment method
+    //for payment intent
     app.post("/create-payment-intent", async (req, res) => {
       const order = req.body;
       const price = order.totalPrice;
